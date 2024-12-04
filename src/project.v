@@ -27,7 +27,7 @@ module tt_um_patsacbghub_example (
     scan_in_reg <= {scan_in_reg[30:0], ui_in[7] } ;
   end
   
-    localparam W=4, K=7 ;
+    localparam W=6, K=6 ;
 
     reg [ (W-1):0 ] mem [0:(2<<K)-1] ;
     wire [K-1 : 0] addr ; wire [W-1 : 0] wr_data ; wire [W-1 : 0] rd_data ;
@@ -38,7 +38,7 @@ module tt_um_patsacbghub_example (
     always @( posedge clk ) begin
       if ( wr_en ) mem[ addr ] <= wr_data ;
     end
-    assign uo_out = {mem[ addr ], mem[ addr ]} ;
+    assign uo_out = {mem[ addr ][8-W-1:0], mem[ addr ][W-1:0]} ;
     
   // List all unused inputs to prevent warnings
   wire _unused = &{ena, clk, rst_n, 1'b0, uio_in};
