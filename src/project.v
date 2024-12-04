@@ -28,6 +28,7 @@ module tt_um_patsacbghub_example (
     assign uo_out = {mem[ ui_in[3:1] ], mem[ ui_in[3:1] ]} ;
     
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0};
+  wire _unused = &{ena, clk, rst_n, 1'b0, uio_in};
+  assign uio_out = 0 ; assign uio_oe = 0 ;
 
 endmodule
