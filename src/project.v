@@ -23,11 +23,7 @@ module tt_um_patsacbghub_example (
   // assign uio_oe  = 0;
     reg [ 3:0 ] mem [0:7] ;
     always @( clk ) begin
-        if ( rst_n == 0 ) begin
-            uo_out <= 0 ;
-        end else begin
             if ( ui_in[0] ) mem[ ui_in[3:1] ] <= ui_in[7:4] ;
-        end
     end
     assign uo_out = {mem[ ui_in[3:1] ], mem[ ui_in[3:1] ]} ;
     
