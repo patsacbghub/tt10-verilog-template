@@ -21,9 +21,22 @@ module tt_um_patsacbghub_example (
     
   // assign uio_out = 0;
   // assign uio_oe  = 0;
-    reg [ 3:0 ] mem [0:7] ;
-    always @( clk ) begin
-            if ( ui_in[0] ) mem[ ui_in[3:1] ] <= ui_in[7:4] ;
+
+  reg [31:0] scan_in_reg ;
+  always @( posedge clk ) begin
+    scan_in_reg <= {scan_in_reg[30:0], ui_in[7] } ;
+  end
+  
+    localparam W=4, K=5 ;
+
+    reg [ (W-1):0 ] mem [0:(2<<K)-1] ;
+    wire [K-1 : 0] addr ; wire [W-1 : 0] wr_data ; wire [W-1 : 0] rd_data ;
+    wire wr_en ;
+    assign wr_en = scan_in_reg[0] ;
+    assign addr = scan_in_reg[(K-1)+1:1] ;
+    assign wr_data = scan_in_reg[(W-1+(K+1)):(K+1)] ;
+    always @( posedge clk ) begin
+      if ( wr_en ) mem[ addr ] <= wr_data ;
     end
     assign uo_out = {mem[ ui_in[3:1] ], mem[ ui_in[3:1] ]} ;
     
