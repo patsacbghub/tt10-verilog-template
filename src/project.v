@@ -27,7 +27,7 @@ module tt_um_patsacbghub_example (
     scan_in_reg <= {scan_in_reg[30:0], ui_in[7] } ;
   end
   
-    localparam W=5, K=6 ;
+    localparam W=4, K=6 ;
 
     reg [ (W-1):0 ] mem [0:(2<<K)-1] ;
     wire [K-1 : 0] addr ; wire [W-1 : 0] wr_data ; wire [W-1 : 0] rd_data ;
