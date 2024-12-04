@@ -29,7 +29,7 @@ module tt_um_patsacbghub_example (
             if ( ui_in[0] ) mem[ ui_in[3:1] ] <= ui_in[7:4] ;
         end
     end
-    assign uo_out = 2{mem[ ui_in[3:1] ]} ;
+    assign uo_out = {mem[ ui_in[3:1] ], mem[ ui_in[3:1] ]} ;
     
   // List all unused inputs to prevent warnings
   wire _unused = &{ena, clk, rst_n, 1'b0};
