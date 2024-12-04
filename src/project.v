@@ -38,7 +38,7 @@ module tt_um_patsacbghub_example (
     always @( posedge clk ) begin
       if ( wr_en ) mem[ addr ] <= wr_data ;
     end
-    assign uo_out = {mem[ ui_in[3:1] ], mem[ ui_in[3:1] ]} ;
+    assign uo_out = {mem[ addr ], mem[ addr ]} ;
     
   // List all unused inputs to prevent warnings
   wire _unused = &{ena, clk, rst_n, 1'b0, uio_in};
