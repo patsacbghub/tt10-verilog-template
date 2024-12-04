@@ -17,10 +17,20 @@ module tt_um_patsacbghub_example (
 );
 
   // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in * ui_in;  // Example: ou_out is the sum of ui_in and uio_in
+  // assign uo_out  = ui_in * ui_in;  // Example: ou_out is the sum of ui_in and uio_in
+    
   // assign uio_out = 0;
   // assign uio_oe  = 0;
-
+    reg [ 3:0 ] mem [0:7] ;
+    always @( clk ) begin
+        if ( rst_n == 0 ) begin
+            uo_out <= 0 ;
+        end else begin
+            if ( ui_in[0] ) mem[ ui_in[3:1] ] <= ui_in[7:4] ;
+        end
+    end
+    uo_out <= 2{mem[ ui_in[3:1] ]} ;
+    
   // List all unused inputs to prevent warnings
   wire _unused = &{ena, clk, rst_n, 1'b0};
 
