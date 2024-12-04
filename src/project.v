@@ -11,12 +11,12 @@ module sap_1( input clk,  input rst, output [7:0] bus_out);
   always @(posedge clk) begin
     if (rst) begin bus_reg <= 8'b0;
     end else begin 
-      if (ir_rden) begin bus_reg = ir;
-      end else if (adder_rden) begin bus_reg = adder_out;
-      end else if (reg_a_rden) begin bus_reg = reg_a;
-      end else if (mem_rden) begin bus_reg = mem_out;
-      end else if (pc_rden) begin bus_reg = pc;
-      end else begin bus_reg = 8'b0;
+      if (ir_rden) begin bus_reg <= ir;
+      end else if (adder_rden) begin bus_reg <= adder_out;
+      end else if (reg_a_rden) begin bus_reg <= reg_a;
+      end else if (mem_rden) begin bus_reg <= mem_out;
+      end else if (pc_rden) begin bus_reg <= pc;
+      end else begin bus_reg <= 8'b0;
       end
     end
   end
@@ -173,29 +173,11 @@ module tt_um_patsacbghub_example (
   // assign uio_out = 0;
   // assign uio_oe  = 0;
 
-  reg [31:0] scan_in_reg ;
-  always @( posedge clk ) begin
-    scan_in_reg <= {scan_in_reg[30:0], ui_in[7] } ;
-  end
-  
-    localparam W=4, K=5 ;
-
-    reg [ (W-1):0 ] mem [0:(2<<K)-1] ;
-    wire [K-1 : 0] addr ; wire [W-1 : 0] wr_data ; wire [W-1 : 0] rd_data ;
-    wire wr_en ;
-    assign wr_en = scan_in_reg[0] ;
-    assign addr = scan_in_reg[(K-1)+1:1] ;
-    assign wr_data = scan_in_reg[(W-1+(K+1)):(K+1)] ;
-    always @( posedge clk ) begin
-      if ( wr_en ) mem[ addr ] <= wr_data ;
-    end
-    assign uo_out = {mem[ addr ][8-W-1:0], mem[ addr ][W-1:0]} ;
-    
   // List all unused inputs to prevent warnings
-    wire _unused = &{ena, clk, rst_n, 1'b0, ui_in, uio_in};
+  wire _unused = &{ena, clk, rst_n, 1'b0, ui_in, uio_in};
   assign uio_out = 0 ; assign uio_oe = 0 ;
 
-    sap_1 cpu_inst0 ( clk,  ~ rst_n, uo_out );
+  sap_1 cpu_inst0 ( clk,  ~ rst_n, uo_out );
 
 endmodule
 
