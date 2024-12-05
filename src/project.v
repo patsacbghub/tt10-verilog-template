@@ -71,7 +71,7 @@ module sap_1( input clk,  input rst, output [7:0] bus_out);
       end else begin present_state <= present_state + 1;
       end
       {pc_inc, pc_rden, mar_load, mem_rden, ir_load, ir_rden,
-        reg_a_load, reg_a_rden, reg_b_load, adder_sub, adder_rden } = 0 ;
+       reg_a_load, reg_a_rden, reg_b_load, adder_sub, adder_rden } <= 0 ;
       case (present_state)
         0: begin pc_rden <= 1; mar_load <= 1 ; end
         1: begin pc_inc <= 1 ; end
