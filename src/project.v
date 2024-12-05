@@ -1,13 +1,25 @@
-/*
- * Copyright (c) 2024 Your Name
- * SPDX-License-Identifier: Apache-2.0
- */
-
 `default_nettype none
 
 module sap_1( input clk,  input rst, output [7:0] bus_out);
   reg[7:0] bus_reg;
   reg[3:0] pc;
+  reg pc_inc, pc_rden, mar_load, mem_rden, ir_load, ir_rden,
+        reg_a_load, reg_a_rden, reg_b_load, adder_sub, adder_rden = 0 ;
+  reg[7:0] reg_a; reg[7:0] reg_b;
+  reg[7:0] ir;
+  wire[7:0] adder_out;
+  reg [2:0]  present_state; wire [3:0] opcode ;
+
+  assign adder_out = (adder_sub) ? reg_a-reg_b : reg_a+reg_b;
+
+  wire[7:0] mem_out; reg[3:0] mar; reg[7:0] rom[0:15];
+  initial begin
+    rom[0] = 8'h0D; rom[1] = 8'h1E; rom[2] = 8'h2F; rom[3] = 8'hF0;
+    rom[4] = 8'h00; rom[5] = 8'h00; rom[6] = 8'h00; rom[7] = 8'h00;
+    rom[8] = 8'h00; rom[9] = 8'h00; rom[10] = 8'h00; rom[11] = 8'h00;
+    rom[12] = 8'h00; rom[13] = 8'h03; rom[14] = 8'h04; rom[15] = 8'h02;
+  end
+    
   always @(posedge clk) begin
     if (rst) begin bus_reg <= 8'b0;
     end else begin 
@@ -21,22 +33,11 @@ module sap_1( input clk,  input rst, output [7:0] bus_out);
     end
   end
     
-  wire hlt; 
-  wire pc_inc; wire pc_rden; 
   always @(posedge clk) begin
     if (rst) begin pc <= 4'b0;
     end else if (pc_inc) begin pc <= pc + 1; end
   end
 
-  wire mar_load; wire mem_rden; wire[7:0] mem_out;
-  reg[3:0] mar; reg[7:0] rom[0:15];
-  initial begin
-    rom[0] = 8'h0D; rom[1] = 8'h1E; rom[2] = 8'h2F; rom[3] = 8'hF0;
-    rom[4] = 8'h00; rom[5] = 8'h00; rom[6] = 8'h00; rom[7] = 8'h00;
-    rom[8] = 8'h00; rom[9] = 8'h00; rom[10] = 8'h00; rom[11] = 8'h00;
-    rom[12] = 8'h00; rom[13] = 8'h03; rom[14] = 8'h04; rom[15] = 8'h02;
-  end
-    
   always @(posedge clk) begin
     if (rst) begin mar <= 4'b0;
     end else if (mar_load) begin mar <= bus_reg[3:0];
@@ -44,115 +45,61 @@ module sap_1( input clk,  input rst, output [7:0] bus_out);
   end
   assign mem_out = rom[mar];
 
-  wire reg_a_load; wire reg_a_rden; reg[7:0] reg_a;
   always @(posedge clk) begin
     if (rst) begin reg_a <= 8'b0;
     end else if (reg_a_load) begin reg_a <= bus_reg;
     end
   end
 
-  wire reg_b_load; reg[7:0] reg_b;
   always @(posedge clk) begin
     if (rst) begin reg_b <= 8'b0;
     end else if (reg_b_load) begin reg_b <= bus_reg;
     end
   end
 
-  wire adder_sub; wire adder_rden; wire[7:0] adder_out;
-  assign adder_out = (adder_sub) ? reg_a-reg_b : reg_a+reg_b;
-
-  wire ir_load; wire ir_rden; reg[7:0] ir;
   always @(posedge clk) begin
     if (rst) begin ir <= 8'b0;
     end else if (ir_load) begin ir <= bus_reg;
     end
   end
 
-  localparam SIG_ADDER_EN  = 0; localparam SIG_ADDER_SUB = 1;
-  localparam SIG_B_LOAD    = 2; localparam SIG_A_EN      = 3;
-  localparam SIG_A_LOAD    = 4; localparam SIG_IR_EN     = 5;
-  localparam SIG_IR_LOAD   = 6; localparam SIG_MEM_EN    = 7;
-  localparam SIG_MEM_LOAD  = 8; localparam SIG_PC_EN     = 9;
-  localparam SIG_PC_INC    = 10; localparam SIG_HLT       = 11;
-    
-  localparam OP_LDA = 4'b0000; localparam OP_ADD = 4'b0001;
-  localparam OP_SUB = 4'b0010; localparam OP_HLT = 4'b1111;
-   
-  reg [2:0]  stage; reg [11:0] control_word;
-  wire [3:0] opcode ;
   assign opcode = ir[7:4] ;
   always @(posedge clk) begin
-    if (rst) begin stage <= 0;
+    if (rst) begin present_state <= 0;
     end else begin
-      if (stage == 5) begin stage <= 0;
-      end else begin stage <= stage + 1;
+      if (present_state == 5) begin present_state <= 0;
+      end else begin present_state <= present_state + 1;
       end
-      control_word <= 12'b0;
-      case (stage)
-        0: begin
-              control_word[SIG_PC_EN] <= 1;
-              control_word[SIG_MEM_LOAD] <= 1;
-            end
-        1: begin
-              control_word[SIG_PC_INC] <= 1;
-            end
-        2: begin
-              control_word[SIG_MEM_EN] <= 1;
-              control_word[SIG_IR_LOAD] <= 1;
-            end
+      {pc_inc, pc_rden, mar_load, mem_rden, ir_load, ir_rden,
+        reg_a_load, reg_a_rden, reg_b_load, adder_sub, adder_rden } = 0 ;
+      case (present_state)
+        0: begin pc_rden <= 1; mar_load <= 1 ; end
+        1: begin pc_inc <= 1 ; end
+        2: begin mem_rden <= 1 ; ir_load <= 1 ; end 
         3: begin
               case (opcode)
-                OP_LDA: begin
-                  control_word[SIG_IR_EN] <= 1;
-                  control_word[SIG_MEM_LOAD] <= 1;
-                end
-                OP_ADD: begin
-                  control_word[SIG_IR_EN] <= 1;
-                  control_word[SIG_MEM_LOAD] <= 1;
-                end
-                OP_SUB: begin
-                  control_word[SIG_IR_EN] <= 1;
-                  control_word[SIG_MEM_LOAD] <= 1;
-                end
-                OP_HLT: begin
-                  control_word[SIG_HLT] <= 1;
-                end
+                4'd0: begin ir_rden <= 1 ; mar_load <= 1 ; end 
+                4'd1: begin ir_rden <= 1 ; mar_load <= 1 ; end 
+                4'd2: begin ir_rden <= 1 ; mar_load <= 1 ; end 
               endcase
             end
         4: begin
               case (opcode)
-                OP_LDA: begin
-                  control_word[SIG_MEM_EN] <= 1;
-                  control_word[SIG_A_LOAD] <= 1;
-                end
-                OP_ADD: begin
-                  control_word[SIG_MEM_EN] <= 1;
-                  control_word[SIG_B_LOAD] <= 1;
-                end
-                OP_SUB: begin
-                  control_word[SIG_MEM_EN] <= 1;
-                  control_word[SIG_B_LOAD] <= 1;
-                end
+                4'd0: begin mem_rden <= 1 ; reg_a_load <= 1 ; end 
+                4'd1: begin mem_rden <= 1 ; reg_b_load <= 1 ; end 
+                4'd2: begin mem_rden <= 1 ; reg_b_load <= 1 ; end 
               endcase
             end
         5: begin
               case (opcode)
-                OP_ADD: begin
-                  control_word[SIG_ADDER_EN] <= 1;
-                  control_word[SIG_A_LOAD] <= 1;
-                end
-                OP_SUB: begin
-                  control_word[SIG_ADDER_SUB] <= 1;
-                  control_word[SIG_ADDER_EN] <= 1;
-                  control_word[SIG_A_LOAD] <= 1;
-                end
+                4'd1: begin adder_rden <= 1; reg_a_load <= 1 ; end
+                4'd2: begin adder_sub <= 1 ; 
+                              adder_rden <= 1; reg_a_load <= 1 ; end
               endcase
             end
           endcase
         end
     end
-    assign { hlt, pc_inc, pc_rden, mar_load, mem_rden, ir_load, ir_rden,
-        reg_a_load, reg_a_rden, reg_b_load, adder_sub, adder_rden } = control_word ;
     assign bus_out = bus_reg;
 endmodule
 
