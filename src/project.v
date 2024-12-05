@@ -4,7 +4,7 @@ module sap_1( input clk,  input rst, output [7:0] bus_out);
   reg[7:0] bus_reg;
   reg[3:0] pc;
   reg pc_inc, pc_rden, mar_load, mem_rden, ir_load, ir_rden,
-        reg_a_load, reg_a_rden, reg_b_load, adder_sub, adder_rden = 0 ;
+        reg_a_load, reg_a_rden, reg_b_load, adder_sub, adder_rden <= 0 ;
   reg[7:0] reg_a; reg[7:0] reg_b;
   reg[7:0] ir;
   wire[7:0] adder_out;
