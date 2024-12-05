@@ -12,22 +12,15 @@ module sap_1( input clk,  input rst, output [7:0] bus_out);
 
   assign adder_out = (adder_sub) ? reg_a-reg_b : reg_a+reg_b;
 
-  wire[7:0] mem_out; reg[3:0] mar; reg[7:0] rom[0:15];
-  initial begin
-    rom[0] = 8'h0D; rom[1] = 8'h1E; rom[2] = 8'h2F; rom[3] = 8'hF0;
-    rom[4] = 8'h00; rom[5] = 8'h00; rom[6] = 8'h00; rom[7] = 8'h00;
-    rom[8] = 8'h00; rom[9] = 8'h00; rom[10] = 8'h00; rom[11] = 8'h00;
-    rom[12] = 8'h00; rom[13] = 8'h03; rom[14] = 8'h04; rom[15] = 8'h02;
-  end
-    
+  wire[7:0] mem_out; reg[3:0] mar; reg[7:0] mem[0:15];
   always @(posedge clk) begin
     if (rst) begin bus_reg <= 8'b0;
     end else begin 
       if (ir_rden) begin bus_reg <= ir;
+      end else if (pc_rden) begin bus_reg <= pc;
+      end else if (mem_rden) begin bus_reg <= mem_out;
       end else if (adder_rden) begin bus_reg <= adder_out;
       end else if (reg_a_rden) begin bus_reg <= reg_a;
-      end else if (mem_rden) begin bus_reg <= mem_out;
-      end else if (pc_rden) begin bus_reg <= pc;
       end else begin bus_reg <= 8'b0;
       end
     end
@@ -43,7 +36,7 @@ module sap_1( input clk,  input rst, output [7:0] bus_out);
     end else if (mar_load) begin mar <= bus_reg[3:0];
     end
   end
-  assign mem_out = rom[mar];
+  assign mem_out = mem[mar];
 
   always @(posedge clk) begin
     if (rst) begin reg_a <= 8'b0;
